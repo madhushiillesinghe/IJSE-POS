@@ -1,0 +1,102 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Dosis', sans-serif;
+}
+.hero{
+    width: 80%;
+    margin: auto;
+}
+.navbar{
+    margin: 30px auto;
+    display: flex;
+    align-items: center;
+}
+ul{
+    flex: 1;
+    text-align: right
+}
+ul li{
+    display: inline-block;
+    list-style: none;
+    margin: 0 25px;
+}
+ul li a{
+    text-decoration: none;
+    color: #000;
+    padding: 0 10px;
+    position: relative;
+}
+ul li a::after{
+    content: '';
+    width: 100%;
+    height: 10px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -55px;
+    transition: 0.5s;
+}
+ul li a:hover::after{
+    width: 100%;
+}
+.logo{
+    width: 90px;
+    margin-left:5%;
+}
+.navbar-icons img{
+    height: 25px;
+    margin-left: 40px;
+    cursor: pointer;
+}
+.navbar-icons{
+    margin-left: 30px;
+}
+.banner{
+    display: flex;
+    margin-top: 70px;
+}
+.left-column,.right-column{
+    flex-basis: 50%;
+}
+.right-column img{
+    width: 100%;
+}
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+}
+
+.carousel-container {
+    width: 100%;
+    height: 78vh;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    height: 100%;
+    width: 100%;
+}
+
+.carousel-slide {
+    min-width: 170%;
+    height: 100%;
+    transition: opacity 1s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
