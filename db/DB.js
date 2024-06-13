@@ -1,31 +1,31 @@
 export let Customers = [
   {
     custId: "C01",
-    custName: "Saman",
-    custAddress: "Galle",
-    custSalary: "21",
+    custName: "Hansika",
+    custAddress: "Elpitiya",
+    custSalary: "21950",
   },
 
   {
     custId: "C02",
-    custName: "Kamal",
+    custName: "Madhushi",
     custAddress: "Galle",
-    custSalary: "21",
+    custSalary: "50000",
   },
 ];
 
 export let Items = [
   {
     itemId: "I01",
-    itemName: "Sunlight",
-    itemQty: 10,
-    itemPrice: 3,
+    itemName: "Orange",
+    itemQty: 250,
+    itemPrice: 300,
   },
   {
     itemId: "I02",
-    itemName: "Buiscut",
-    itemQty: 10,
-    itemPrice: 3,
+    itemName: " PineApple",
+    itemQty: 25,
+    itemPrice: 850,
   },
 ];
 
