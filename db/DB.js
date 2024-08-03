@@ -1,16 +1,16 @@
 export let Customers = [
   {
-    custId: "C01",
-    custName: "Hansika",
-    custAddress: "Elpitiya",
-    custSalary: "21950",
+    id: "C01",
+    name: "Hansika",
+    address: "Elpitiya",
+    salary: "21950",
   },
 
   {
-    custId: "C02",
-    custName: "Madhushi",
-    custAddress: "Galle",
-    custSalary: "50000",
+    id: "C02",
+    name: "Madhushi",
+    address: "Galle",
+    salary: "50000",
   },
 ];
 
