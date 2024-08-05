@@ -3,7 +3,7 @@ import { saveCustomer } from "../model/CustomerModel.js";
 import { getAllCustomers } from "../model/CustomerModel.js";
 import { updateCustomer } from "../model/CustomerModel.js";
 import { deleteCustomer } from "../model/CustomerModel.js";
-
+let customerarray;
 $(document).ready(function () {
   refresh();
 });
@@ -208,6 +208,7 @@ function searchCustomer(id) {
 }
 
 $("#CustomerManage .updateBtn").click(function () {
+  let index;
   let UpdateCustomer = {
     id: "C00",
     name: $("#CustomerManage .custName").val(),
@@ -216,18 +217,20 @@ $("#CustomerManage .updateBtn").click(function () {
   };
 
   let validResult = validate(UpdateCustomer);
-
+  console.log(UpdateCustomer, "custom obj");
   UpdateCustomer.id = $("#CustomerManage .custId").val();
+  let id=UpdateCustomer.id;
 
   if (validResult) {
-    let customers = getAllCustomers();
-    let index = customers.findIndex((c) => c.id === UpdateCustomer.id);
-    updateCustomer(index, UpdateCustomer);
+    // let customerarray = getAllCustomers();
+    // console.log("Update cust", customerarray);
+    index = customerarray.findIndex((c) => c.id === UpdateCustomer.id);
+    // updateCustomer(index, UpdateCustomer);
     alert("Customer Updated");
     refresh();
   }
 
-  const updatecustomerJSON = JSON.stringify(updateCustomer);
+  const updatecustomerJSON = JSON.stringify(UpdateCustomer);
   console.log(updatecustomerJSON);
 
   const http = new XMLHttpRequest();
@@ -242,13 +245,18 @@ $("#CustomerManage .updateBtn").click(function () {
         console.error("Ready State" + http.readyState);
       }
     } else {
-      console.error("Readyws State" + http.readyState);
+      console.error("Ready State" + http.readyState);
     }
   };
-  http.open("PUT", "http://localhost:8080/FruitShop/customer", true);
+  http.open(
+    "PUT",
+    `http://localhost:8080/FruitShop/customer?customerId=${id}`,
+    true);
   http.setRequestHeader("Content-Type", "application/json");
   http.send(updatecustomerJSON);
 });
+
+
 
 // function reloadTable() {
 //   let customers = getAllCustomers();
@@ -290,12 +298,12 @@ function reloadTable() {
       if (http.status == 200) {
         const customers = JSON.parse(http.responseText);
         console.log("Customer Data Array:", customers);
-        let customerarray = getAllCustomers();
-
+        customerarray = getAllCustomers();
+        customerarray = customers;
+        console.log("drdrf", customerarray);
         // customers.forEach((ch) => {
         //   customerarray.push(ch);
         // });
-        console.log(customerarray.length, "hammo athi");
         $("#CustomerManage .tableRow").empty();
         customers.forEach((c) => {
           loadTable(c);
@@ -322,10 +330,14 @@ function reloadTable() {
 }
 
 $("#CustomerManage .removeBtn").click(function () {
-  let customers = getAllCustomers();
-  let id = $("#CustomerManage .custId").val();
+  //let customers = getAllCustomers();
+  //customerarray = customers;
 
-  let index = customers.findIndex((c) => c.custId === id);
+  let id = $("#CustomerManage .custId").val();
+  console.log("array",customerarray);
+
+  let index = customerarray.findIndex((c) => c.id === id);
+  
   if (index >= 0) {
     deleteCustomer(index);
     alert("Customer Deleted");
@@ -333,6 +345,27 @@ $("#CustomerManage .removeBtn").click(function () {
   } else {
     alert("Customer Not Found");
   }
+
+  const http = new XMLHttpRequest();
+  http.onreadystatechange = () => {
+    if (http.readyState == 4) {
+      if (http.status == 204) {
+        var responseTextJSON = JSON.stringify(http.responseText);
+        console.log(responseTextJSON);
+      } else {
+        console.error("Failed");
+        console.error("Status" + http.status);
+        console.error("Ready State" + http.readyState);
+      }
+    } else {
+      console.error("Ready State" + http.readyState);
+    }
+  };
+  http.open(
+    "DELETE",
+    `http://localhost:8080/FruitShop/customer?customerId=${id}`,
+    true);
+  http.send();
 });
 
 $("#CustomerManage .tableRow").on("click", "tr", function () {
