@@ -1,3 +1,4 @@
+import { Customers } from "../db/DB.js";
 import { saveCustomer } from "../model/CustomerModel.js";
 import { getAllCustomers } from "../model/CustomerModel.js";
 import { updateCustomer } from "../model/CustomerModel.js";
@@ -132,9 +133,7 @@ function validate(customer) {
 }
 
 function loadTable(customer) {
-
   $("#CustomerManage .tableRow").append(
-
     "<tr> " +
       "<td>" +
       customer.id +
@@ -222,14 +221,14 @@ $("#CustomerManage .updateBtn").click(function () {
 
   if (validResult) {
     let customers = getAllCustomers();
-    let index = customers.findIndex((c) => c.custId === UpdateCustomer.custId);
+    let index = customers.findIndex((c) => c.id === UpdateCustomer.id);
     updateCustomer(index, UpdateCustomer);
     alert("Customer Updated");
     refresh();
   }
 
-  const customerJSON = JSON.stringify(updateCustomer);
-  console.log(customerJSON);
+  const updatecustomerJSON = JSON.stringify(updateCustomer);
+  console.log(updatecustomerJSON);
 
   const http = new XMLHttpRequest();
   http.onreadystatechange = () => {
@@ -243,20 +242,83 @@ $("#CustomerManage .updateBtn").click(function () {
         console.error("Ready State" + http.readyState);
       }
     } else {
-      console.error("Ready State" + http.readyState);
+      console.error("Readyws State" + http.readyState);
     }
   };
   http.open("PUT", "http://localhost:8080/FruitShop/customer", true);
   http.setRequestHeader("Content-Type", "application/json");
-  http.send(customerJSON);
+  http.send(updatecustomerJSON);
 });
 
+// function reloadTable() {
+//   let customers = getAllCustomers();
+//   $.ajax({
+//           url: "http://localhost:8080/FruitShop/customer?function=get",
+//           type: "GET",
+//           success: function(res) {
+//               // let customersdb = JSON.parse(res);
+//               // console.log('Response received:', res);
+//               // for(let i=0;i<customersdb.length;i++){
+//               //   customers.push(customersdb[i]);
+//               // }
+//               console.log(res.+"which");
+
+//               let cus=JSON.parse(res);
+//               $('#CustomerManage .tableRow').empty();
+//               customers.forEach(c => {
+//                   loadTable(c);
+//               });
+//           },
+//           error: function(err) {
+//             console.log('Response received:', "error what to do");
+//                       console.error("Error from server: " + JSON.stringify(err));
+//                   }
+
+//   // $("#CustomerManage .tableRow").empty(),
+//   // customers.forEach((c) => {
+//   //   loadTable(c);
+//   // });
+
+// });
+// console.log(customers.length+"ddddd");
+// }
+
 function reloadTable() {
-  let customers = getAllCustomers();
-  $("#CustomerManage .tableRow").empty();
-  customers.forEach((c) => {
-    loadTable(c);
-  });
+  const http = new XMLHttpRequest();
+  http.onreadystatechange = () => {
+    if (http.readyState == 4) {
+      if (http.status == 200) {
+        const customers = JSON.parse(http.responseText);
+        console.log("Customer Data Array:", customers);
+        let customerarray = getAllCustomers();
+
+        // customers.forEach((ch) => {
+        //   customerarray.push(ch);
+        // });
+        console.log(customerarray.length, "hammo athi");
+        $("#CustomerManage .tableRow").empty();
+        customers.forEach((c) => {
+          loadTable(c);
+        });
+      } else {
+        console.error("Failed");
+        console.error("Status" + http.status);
+        console.error("Ready State" + http.readyState);
+      }
+    } else {
+      console.error("Ready State" + http.readyState);
+    }
+  };
+  http.open(
+    "GET",
+    "http://localhost:8080/FruitShop/customer?function=getAll",
+    true
+  );
+  http.setRequestHeader("Content-Type", "application/json");
+
+  // Send the GET request
+  http.send();
+  //console.log(obj.val,"obj fdata");
 }
 
 $("#CustomerManage .removeBtn").click(function () {
