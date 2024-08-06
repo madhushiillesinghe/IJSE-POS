@@ -6,29 +6,30 @@ import { updateItem } from '../model/ItemModel.js';
 document.querySelector('#ItemManage #ItemForm').addEventListener('submit', function(event){
     event.preventDefault();
 });
+let itemarray;
 
 $(document).ready(function(){
     refresh();
 });
 
-var itemId ;
-var itemName;
-var itemQty;
-var itemPrice;
+var code  ;
+var description;
+var quantity;
+var price;
 
 $('#ItemManage .saveBtn').click(function(){
     
-        itemId = $('#ItemManage .itemId').val();
-        itemName = $('#ItemManage .itemName').val();
-        itemQty = $('#ItemManage .itemQty').val();
-        itemPrice = $('#ItemManage .itemPrice').val();
+        code = $('#ItemManage .itemId').val();
+        description = $('#ItemManage .itemName').val();
+        quantity     = $('#ItemManage .itemQty').val();
+        price  = $('#ItemManage .itemPrice').val();
     
         let item = {
-            itemId : itemId,
-            itemName : itemName,
-            itemQty : itemQty,
-            itemPrice : itemPrice
-        }
+            code : code,
+            description : description,
+            quantity : quantity,
+            price : price,
+        };
 
         if(validate(item)){
             saveItem(item);
@@ -36,13 +37,34 @@ $('#ItemManage .saveBtn').click(function(){
             refresh();
         }
 
+        const itemJSON = JSON.stringify(item);
+        console.log(itemJSON);
+      
+        const http = new XMLHttpRequest();
+        http.onreadystatechange = () => {
+          if (http.readyState == 4) {
+            if (http.status == 200) {
+              var responseTextJSON = JSON.stringify(http.responseText);
+              console.log(responseTextJSON);
+            } else {
+              console.error("Failed");
+              console.error("Status" + http.status);
+              console.error("Ready State" + http.readyState);
+            }
+          } else {
+            console.error("Ready State" + http.readyState);
+          }
+        };
+        http.open("POST", "http://localhost:8080/FruitShop/item", true);
+        http.setRequestHeader("Content-Type", "application/json");
+        http.send(itemJSON);
 });
 
 function validate(item){
         
         let valid = true;
         
-        if((/^I0[0-9]+$/).test(item.itemId)){
+        if((/^I0[0-9]+$/).test(item.code)){
             $('#ItemManage .invalidCode').text('');
             valid = true;
         }
@@ -51,7 +73,7 @@ function validate(item){
             valid = false;
         }
         
-        if((/^(?:[A-Z][a-z]*)(?: [A-Z][a-z]*)*$/).test(item.itemName)){
+        if((/^(?:[A-Z][a-z]*)(?: [A-Z][a-z]*)*$/).test(item.description)){
             $('#ItemManage .invalidName').text('');
                 
             if(valid){
@@ -64,7 +86,7 @@ function validate(item){
             valid = false;
         }
 
-        if(item.itemQty != null && item.itemQty > 0){
+        if(item.quantity != null && item.quantity > 0){
             $('#ItemManage .invalidQty').text('');
             if(valid){
                 valid = true;
@@ -75,7 +97,7 @@ function validate(item){
             valid = false;
         }
 
-        if(item.itemPrice != null && item.itemPrice > 0){
+        if(item.price != null && item.price > 0){
             $('#ItemManage .invalidPrice').text('');
             if(valid){
                 valid = true;
@@ -112,42 +134,107 @@ function extractNumber(id){
 
 function refresh(){
     $('#ItemManage .itemId').val(generateId());
+    $('#ItemManage .itemId').val('');
     $('#ItemManage .itemName').val('');
     $('#ItemManage .itemQty').val('');
     $('#ItemManage .itemPrice').val('');
-    loadTable();
+    reloadTable();
 }
 
 function generateId(){
-    let items = getAllItems();
+    const http = new XMLHttpRequest();
+  http.onreadystatechange = () => {
+    if (http.readyState == 4) {
+      if (http.status == 200) {
+        const items = JSON.parse(http.responseText);
+        console.log("Itemr Data Array:", items);
+        itemarray = getAllItems();
+        itemarray = items;
+        if (!items || items.length === 0) {
+          
+          console.log("this")
+         // return "C01";
+         $('#ItemManage .itemId').val('I01');
 
-    if(!items || items.length == 0){
-        return 'I01';
+        } else {
+          let lastItem = items[items.length - 1];
+          let id = lastItem && lastItem.code ? lastItem.code : "I00";
+          let number = extractNumber(id);
+          number++;
+          console.log("that")
+          $('#ItemManage .itemId').val('I0' + number);
+        // return "C0" + number;
+
+        }
+        
+      } else {
+        console.error("Failed");
+        console.error("Status" + http.status);
+        console.error("Ready State" + http.readyState);
+      }
+    } else {
+      console.error("Ready State" + http.readyState);
     }
-    else{
-        let lastItem = items[items.length - 1];
-        console.log(lastItem);
-        let number = extractNumber(lastItem.itemId);
-        console.log(number);
-        number++;
-        return 'I0' + number;
-    }
+  };
+  http.open(
+    "GET",
+    "http://localhost:8080/FruitShop/item?function=getAll",
+    true
+  );
+  http.setRequestHeader("Content-Type", "application/json");
+
+  // Send the GET request
+  http.send();
 }
 
-function loadTable(){
-    let items = getAllItems();
-    $('#ItemManage .tableRow').empty();
-    for(let i = 0; i < items.length; i++){
+function loadTable(item){
+  //  let items = getAllItems();
         $('#ItemManage .tableRow').append(
             '<tr> ' +
-                '<td>' + items[i].itemId + '</td>' +
-                '<td>' + items[i].itemName + '</td>' +
-                '<td>' + items[i].itemQty + '</td>' +
-                '<td>' + items[i].itemPrice + '</td>' +
+                '<td>' + item.code + '</td>' +
+                '<td>' + item.description + '</td>' +
+                '<td>' + item.quantity + '</td>' +
+                '<td>' + item.price + '</td>' +
             '</tr>' 
         );
     }
-}
+
+function reloadTable() {
+    const http = new XMLHttpRequest();
+    http.onreadystatechange = () => {
+      if (http.readyState == 4) {
+        if (http.status == 200) {
+          const items = JSON.parse(http.responseText);
+          console.log("Item Data Array:", items);
+          itemarray = getAllItems();
+          itemarray = items;
+          console.log("hii", itemarray);
+          // customers.forEach((ch) => {
+          //   customerarray.push(ch);
+          // });
+          $('#ItemManage .tableRow').empty();
+          items.forEach((c) => {
+            loadTable(c);
+          });
+        } else {
+          console.error("Failed");
+          console.error("Status" + http.status);
+          console.error("Ready State" + http.readyState);
+        }
+      } else {
+        console.error("Ready State" + http.readyState);
+      }
+    };
+    http.open(
+      "GET",
+      "http://localhost:8080/FruitShop/item?function=getAll",
+      true
+    );
+    http.setRequestHeader("Content-Type", "application/json");
+  
+    // Send the GET request
+    http.send();
+  }
 
 $('#ItemManage .tableRow').on('click', 'tr', function(){
     let id = $(this).children('td:eq(0)').text();
@@ -163,8 +250,8 @@ $('#ItemManage .tableRow').on('click', 'tr', function(){
 
 $('#ItemManage .deleteBtn').click(function(){
     let id = $('#ItemManage .itemId').val();
-    let items = getAllItems();
-    let item = items.findIndex(item => item.itemId === id);
+   // let items = getAllItems();
+    let item = itemarray.findIndex((item) => item.code === id);
     if(item >= 0){
         deleteItem(item);
         alert('Item Deleted');
@@ -173,27 +260,75 @@ $('#ItemManage .deleteBtn').click(function(){
     else{
         $('#ItemManage .invalidCode').text('Item Id does not exist');
     }
+    const http = new XMLHttpRequest();
+    http.onreadystatechange = () => {
+      if (http.readyState == 4) {
+        if (http.status == 204) {
+          var responseTextJSON = JSON.stringify(http.responseText);
+          console.log(responseTextJSON);
+        } else {
+          console.error("Failed");
+          console.error("Status" + http.status);
+          console.error("Ready State" + http.readyState);
+        }
+      } else {
+        console.error("Ready State" + http.readyState);
+      }
+    };
+    http.open(
+      "DELETE",
+      `http://localhost:8080/FruitShop/item?itemCode=${id}`,
+      true
+    );
+    http.send();
+
 });
 
 $('#ItemManage .updateBtn').click(function(){
     let item = {
-        itemId : 'I00',
-        itemName : $('#ItemManage .itemName').val(),
-        itemQty : $('#ItemManage .itemQty').val(),
-        itemPrice : $('#ItemManage .itemPrice').val()
-    }
+        code : 'I00',
+        description : $('#ItemManage .itemName').val(),
+        quantity : $('#ItemManage .itemQty').val(),
+        price: $('#ItemManage .itemPrice').val(),
+    };
 
     let valid = validate(item);
 
-    item.itemId = $('#ItemManage .itemId').val();
+    item.code = $('#ItemManage .itemId').val();
+    let code=item.code;
 
     if(valid){
-        let items = getAllItems();
-        let index = items.findIndex(i => i.itemId === item.itemId);
-        updateItem(index, item);
+       // let items = getAllItems();
+        let index = itemarray.findIndex((i) => i.code === item.code);
+       // updateItem(index, item);
         alert('Item Updated');
         refresh();
     }
+
+    const updateItemJSON = JSON.stringify(item);
+
+  const http = new XMLHttpRequest();
+  http.onreadystatechange = () => {
+    if (http.readyState == 4) {
+      if (http.status == 200) {
+        var responseTextJSON = JSON.stringify(http.responseText);
+        console.log(responseTextJSON);
+      } else {
+        console.error("Failed");
+        console.error("Status" + http.status);
+        console.error("Ready State" + http.readyState);
+      }
+    } else {
+      console.error("Ready State" + http.readyState);
+    }
+  };
+  http.open(
+    "PUT",
+    `http://localhost:8080/FruitShop/item?itemCode=${code}`,
+    true
+  );
+  http.setRequestHeader("Content-Type", "application/json");
+  http.send(updateItemJSON);
 });
 
 $('#ItemManage .clearBtn').click(function(){
@@ -203,13 +338,14 @@ $('#ItemManage .clearBtn').click(function(){
 $('#ItemManage .searchBtn').click(function(){
     let id = $('#ItemManage .itemId').val();
     let items = getAllItems();
-    let item = items.find(item => item.itemId === id);
+    let item = itemarray.find(item => item.code === id);
     if(item){
-        $('#ItemManage .itemName').val(item.itemName);
-        $('#ItemManage .itemQty').val(item.itemQty);
-        $('#ItemManage .itemPrice').val(item.itemPrice);
+        $('#ItemManage .itemName').val(item.description);
+        $('#ItemManage .itemQty').val(item.quantity);
+        $('#ItemManage .itemPrice').val(item.price);
     }
     else{
         $('#ItemManage .invalidCode').text('Item Id does not exist');
     }
 });
+
