@@ -43,21 +43,6 @@ $("#CustomerManage .saveBtn").click(function () {
   const customerJSON = JSON.stringify(customer);
   console.log(customerJSON);
 
-  //     $.ajax({
-  //         url: "http://localhost:5500/FruitShop/customer",
-  //         type: "POST",
-  //         data: customerJSON,
-  //         contentType: "application/json; charset=utf-8",
-  //         success: function (response) {
-  //           swal("Customer Saved!", response, "success");
-  //         },
-  //         error: function (xhr, status, error) {
-  //           swal("Failed to Saved!", status, "error")
-  //         },
-  //       });
-
-  // });
-
   const http = new XMLHttpRequest();
   http.onreadystatechange = () => {
     if (http.readyState == 4) {
@@ -160,18 +145,52 @@ function extractNumber(id) {
 }
 
 function createCustomerId() {
-  let customers = getAllCustomers();
+  const http = new XMLHttpRequest();
+  http.onreadystatechange = () => {
+    if (http.readyState == 4) {
+      if (http.status == 200) {
+        const customers = JSON.parse(http.responseText);
+        console.log("Customer Data Array:", customers);
+        customerarray = getAllCustomers();
+        customerarray = customers;
+        if (!customers || customers.length === 0) {
+          
+          console.log("this")
+         // return "C01";
+         $('#CustomerManage .custId').val('C01');
 
-  if (!customers || customers.length === 0) {
-    return "C01";
-  } else {
-    let lastCustomer = customers[customers.length - 1];
-    let id = lastCustomer && lastCustomer.id ? lastCustomer.id : "C00";
+        } else {
+          let lastCustomer = customers[customers.length - 1];
+          let id = lastCustomer && lastCustomer.id ? lastCustomer.id : "C00";
+          let number = extractNumber(id);
+          number++;
+          console.log("that")
+          $('#CustomerManage .custId').val('C0' + number);
+        // return "C0" + number;
 
-    let number = extractNumber(id);
-    number++;
-    return "C0" + number;
-  }
+        }
+        
+      } else {
+        console.error("Failed");
+        console.error("Status" + http.status);
+        console.error("Ready State" + http.readyState);
+      }
+    } else {
+      console.error("Ready State" + http.readyState);
+    }
+  };
+  http.open(
+    "GET",
+    "http://localhost:8080/FruitShop/customer?function=getAll",
+    true
+  );
+  http.setRequestHeader("Content-Type", "application/json");
+
+  // Send the GET request
+  http.send();
+
+
+ 
 }
 
 function refresh() {
@@ -193,9 +212,9 @@ $("#CustomerManage .clearBtn").click(function () {
 $("#CustomerManage .searchBtn").click(function () {
   let customer = searchCustomer($("#CustomerManage .custId").val());
   if (customer) {
-    $("#CustomerManage .custName").val(customer.custName);
-    $("#CustomerManage .custAddress").val(customer.custAddress);
-    $("#CustomerManage .custSalary").val(customer.custSalary);
+    $("#CustomerManage .custName").val(customer.name);
+    $("#CustomerManage .custAddress").val(customer.address);
+    $("#CustomerManage .custSalary").val(customer.salary);
   } else {
     alert("Customer Not Found");
   }
@@ -203,7 +222,8 @@ $("#CustomerManage .searchBtn").click(function () {
 
 function searchCustomer(id) {
   let customers = getAllCustomers();
-  let customer = customers.find((c) => c.custId === id);
+  //customers=customerarray;
+  let customer = customerarray.find((c) => c.id === id);
   return customer;
 }
 
@@ -219,7 +239,7 @@ $("#CustomerManage .updateBtn").click(function () {
   let validResult = validate(UpdateCustomer);
   console.log(UpdateCustomer, "custom obj");
   UpdateCustomer.id = $("#CustomerManage .custId").val();
-  let id=UpdateCustomer.id;
+  let id = UpdateCustomer.id;
 
   if (validResult) {
     // let customerarray = getAllCustomers();
@@ -251,12 +271,11 @@ $("#CustomerManage .updateBtn").click(function () {
   http.open(
     "PUT",
     `http://localhost:8080/FruitShop/customer?customerId=${id}`,
-    true);
+    true
+  );
   http.setRequestHeader("Content-Type", "application/json");
   http.send(updatecustomerJSON);
 });
-
-
 
 // function reloadTable() {
 //   let customers = getAllCustomers();
@@ -334,10 +353,10 @@ $("#CustomerManage .removeBtn").click(function () {
   //customerarray = customers;
 
   let id = $("#CustomerManage .custId").val();
-  console.log("array",customerarray);
+  console.log("array", customerarray);
 
   let index = customerarray.findIndex((c) => c.id === id);
-  
+
   if (index >= 0) {
     deleteCustomer(index);
     alert("Customer Deleted");
@@ -364,7 +383,8 @@ $("#CustomerManage .removeBtn").click(function () {
   http.open(
     "DELETE",
     `http://localhost:8080/FruitShop/customer?customerId=${id}`,
-    true);
+    true
+  );
   http.send();
 });
 
