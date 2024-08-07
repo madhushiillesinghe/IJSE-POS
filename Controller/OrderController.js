@@ -40,23 +40,62 @@ function extractNumber(id) {
 }
 
 function generateId() {
-  console.log("Get all array",itemarray);
-  console.log("Get all array",customerarray);
+  const http = new XMLHttpRequest();
+  http.onreadystatechange = () => {
+    if (http.readyState == 4) {
+      if (http.status == 200) {
+        const orders = JSON.parse(http.responseText);
+        console.log("Order Data Array:", orders);
+        if (!orders || orders.length === 0) {
+          
+          console.log("this")
+         // return "C01";
+         $('#OrderManage .orderId').val('OD01');
 
-  let orders = getAllOrders();
+        } else {
+          let order = orders[orders.length - 1];
+          let id = order && order.orderId ? order.orderId : "OD00";
+          let number = extractNumber(id);
+          number++;
+          console.log("that")
+          $('#OrderManage .orderId').val('OD' + number);
+        // return "C0" + number;
 
-  // alert(orders.length);
+        }
+        
+      } else {
+        console.error("Failed");
+        console.error("Status" + http.status);
+        console.error("Ready State" + http.readyState);
+      }
+    } else {
+      console.error("Ready State" + http.readyState);
+    }
+  };
+  http.open(
+    "GET",
+    "http://localhost:8080/FruitShop/placeOrder?function=getAll",
+    true
+  );
+  http.setRequestHeader("Content-Type", "application/json");
 
-  if (orders.length === 0) {
-    return "OD01";
-  } else {
-    // alert('awa');
-    let orderId = orders[orders.length - 1].orderId;
-    let number = extractNumber(orderId);
-    number++;
-    // alert('OD0' + number);
-    return "OD0" + number;
-  }
+  // Send the GET request
+  http.send();
+
+
+
+  // // alert(orders.length);
+
+  // if (orders.length === 0) {
+  //   return "OD01";
+  // } else {
+  //   // alert('awa');
+  //   let orderId = orders[orders.length - 1].orderId;
+  //   let number = extractNumber(orderId);
+  //   number++;
+  //   // alert('OD0' + number);
+  //   return "OD0" + number;
+  // }
 }
 
 function loadCustomer() {
@@ -374,8 +413,8 @@ $(".mainTable .tableRows").on("click", "div", function () {
 
 function dropItem() {
   let itemCode = $("#OrderManage .itemCode").val();
-  let item = getItems.find((I) => I.itemCode === itemCode);
-  let index = getItems.findIndex((I) => I.itemCode === itemCode);
+ // let item = getItems.find((I) => I.code === itemCode);
+  let index = getItems.findIndex((I) => I.code === itemCode);
   getItems.splice(index, 1);
   alert("Item Removed");
   loadTable();
