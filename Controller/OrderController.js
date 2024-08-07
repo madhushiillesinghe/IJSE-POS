@@ -3,7 +3,10 @@ import { getAllCustomers } from "../model/CustomerModel.js";
 import { getAllItems, updateItem } from "../model/ItemModel.js";
 import { saveOrder } from "../model/OrderModel.js";
 
-var itemId;
+import { itemarray } from "./ItemController.js";
+import { customerarray } from "./CustomerController.js";
+
+var code;
 var itemQty;
 var orderQty;
 
@@ -37,6 +40,9 @@ function extractNumber(id) {
 }
 
 function generateId() {
+  console.log("Get all array",itemarray);
+  console.log("Get all array",customerarray);
+
   let orders = getAllOrders();
 
   // alert(orders.length);
@@ -59,8 +65,8 @@ function loadCustomer() {
   let option = [];
   let customers = getAllCustomers();
   option.unshift("");
-  for (let i = 0; i < customers.length; i++) {
-    option.push(customers[i].custId);
+  for (let i = 0; i < customerarray.length; i++) {
+    option.push(customerarray[i].id);
   }
 
   $.each(option, function (index, value) {
@@ -69,11 +75,11 @@ function loadCustomer() {
 }
 
 $("#OrderManage .customers").change(function () {
-  let customer = getAllCustomers().find((c) => c.custId === $(this).val());
-  $("#OrderManage .custId").val(customer.custId);
-  $("#OrderManage .custName").val(customer.custName);
-  $("#OrderManage .custAddress").val(customer.custAddress);
-  $("#OrderManage .custSalary").val(customer.custSalary);
+  let customer = customerarray.find((c) => c.id === $(this).val());
+  $("#OrderManage .custId").val(customer.id);
+  $("#OrderManage .custName").val(customer.name);
+  $("#OrderManage .custAddress").val(customer.address);
+  $("#OrderManage .custSalary").val(customer.salary);
 });
 
 function loadItems() {
@@ -82,8 +88,8 @@ function loadItems() {
   let option = [];
   let items = getAllItems();
 
-  for (let i = 0; i < items.length; i++) {
-    option.push(items[i].itemId);
+  for (let i = 0; i < itemarray.length; i++) {
+    option.push(itemarray[i].code);
   }
 
   option.unshift("");
@@ -94,15 +100,15 @@ function loadItems() {
 }
 
 $("#OrderManage .itemCmb").change(function () {
-  let item = getAllItems().find((i) => i.itemId === $(this).val());
-  itemId = item.itemId;
+  let item = itemarray.find((i) => i.code === $(this).val());
+  code = item.code;
   // alert(item.itemQty);
   itemQty = item.itemQty;
   $("#OrderManage .addBtn").text("Add");
-  $("#OrderManage .itemCode").val(item.itemId);
-  $("#OrderManage .itemName").val(item.itemName);
-  $("#OrderManage .itemQty").val(item.itemQty);
-  $("#OrderManage .itemPrice").val(item.itemPrice);
+  $("#OrderManage .itemCode").val(item.code);
+  $("#OrderManage .itemName").val(item.description);
+  $("#OrderManage .itemQty").val(item.quantity);
+  $("#OrderManage .itemPrice").val(item.price );
 });
 
 let getItems = [];
@@ -137,10 +143,10 @@ $("#OrderManage .addBtn").click(function () {
     dropItem();
   } else {
     let getItem = {
-      itemCode: $("#OrderManage .itemCode").val(),
-      getItems: $("#OrderManage .itemName").val(),
-      itemPrice: parseFloat($("#OrderManage .itemPrice").val()),
-      itemQty: parseInt($("#OrderManage .orderQty").val(), 10),
+      code: $("#OrderManage .itemCode").val(),
+      description: $("#OrderManage .itemName").val(),
+      price: parseFloat($("#OrderManage .itemPrice").val()),
+      quantity: parseInt($("#OrderManage .orderQty").val(), 10),
       total:
         parseFloat($("#OrderManage .itemPrice").val()) *
         parseInt($("#OrderManage .orderQty").val(), 10),
@@ -155,7 +161,8 @@ $("#OrderManage .addBtn").click(function () {
         $("#OrderManage .custName").val() !== null
       ) {
         if (orderQty > 0) {
-          let item = getItems.find((I) => I.itemCode === getItem.itemCode);
+          
+          let item = getItems.find((I) => I.code=== getItem.code);
           if (item == null) {
             getItems.push(getItem);
             loadTable();
@@ -182,16 +189,16 @@ function loadTable() {
     $("#OrderManage .tableRows").append(
       "<div> " +
         "<div>" +
-        getItems[i].itemCode +
+        getItems[i].code +
         "</div>" +
         "<div>" +
-        getItems[i].getItems +
+        getItems[i].description +
         "</div>" +
         "<div>" +
-        getItems[i].itemPrice +
+        getItems[i].price  +
         "</div>" +
         "<div>" +
-        getItems[i].itemQty +
+        getItems[i].quantity +
         "</div>" +
         "<div>" +
         getItems[i].total +
@@ -223,7 +230,7 @@ function setTotal() {
 $("#OrderManage .placeOrder").click(function () {
   let cash = parseFloat($("#OrderManage .Cash").val());
   let total = parseFloat($("#OrderManage .Total").text());
-  let discount = parseFloat($("#OrderManage .Discount").val());
+  let discount = ($("#OrderManage .Discount").val());
   // alert(cash + ' ' + total + ' ' + discount);
 
   if (cash >= total) {
@@ -233,18 +240,19 @@ $("#OrderManage .placeOrder").click(function () {
       $("#OrderManage .SubTotal").text(subTotal.toFixed(2));
       let balance = cash - subTotal;
       $("#OrderManage .Balance").val(balance.toFixed(2));
-
+      console.log("get Item",getItems)
       let Order = {
         orderId: $("#OrderManage .orderId").val(),
-        orderDate: $("#OrderManage .orderDate").val(),
-        custId: $("#OrderManage .custId").val(),
-        items: getItems,
+        date: $("#OrderManage .orderDate").val(),
+        customerId: $("#OrderManage .custId").val(),
+        itemDtoList: getItems,
         total: total,
         discount: discount,
         subTotal: subTotal,
         cash: cash,
         balance: balance,
       };
+
 
       saveOrder(Order);
       updateItemData();
@@ -253,22 +261,101 @@ $("#OrderManage .placeOrder").click(function () {
       clear(2);
       alert("Order Placed");
       refresh();
+
+      const orderJSON = JSON.stringify(Order);
+  console.log(orderJSON);
+
+  const http = new XMLHttpRequest();
+  http.onreadystatechange = () => {
+    if (http.readyState == 4) {
+      if (http.status == 200) {
+        var responseTextJSON = JSON.stringify(http.responseText);
+        console.log(responseTextJSON);
+      } else {
+        console.error("Failed");
+        console.error("Status" + http.status);
+        console.error("Ready State" + http.readyState);
+      }
+    } else {
+      console.error("Ready State" + http.readyState);
+    }
+  };
+  http.open("POST", "http://localhost:8080/FruitShop/placeOrder", true);
+  http.setRequestHeader("Content-Type", "application/json");
+  http.send(orderJSON);
+
     } else {
       alert("Invalid Discount");
     }
   } else {
     alert("Not Enough Cash");
   }
+
+  
+
 });
 
+
 function updateItemData() {
-  let items = getAllItems();
+  
   for (let i = 0; i < getItems.length; i++) {
-    let item = items.find((I) => I.itemId === getItems[i].itemCode);
-    item.itemQty -= getItems[i].itemQty;
-    let index = items.findIndex((I) => I.itemId === getItems[i].itemCode);
-    updateItem(index, item);
+    let item = itemarray.find((I) => I.code === getItems[i].code);
+    console.log("item",item)
+    item.quantity -= getItems[i].quantity;
+
+    let index = itemarray.findIndex((I) => I.code === getItems[i].code);
+    //updateItem(index, item);
+    let code=item.code;
+    // let items = getAllItems();
+   // let index = itemarray.findIndex((i) => i.code === item2.code);
+    //updateItem( item);
+    refresh();
+
+const updateItemJSON = JSON.stringify(item);
+console.log("Json",updateItemJSON)
+const http = new XMLHttpRequest();
+http.onreadystatechange = () => {
+if (http.readyState == 4) {
+  if (http.status == 200) {
+    var responseTextJSON = JSON.stringify(http.responseText);
+    console.log(responseTextJSON);
+  } else {
+    console.error("Failed");
+    console.error("Status" + http.status);
+    console.error("Ready State" + http.readyState);
   }
+} else {
+  console.error("Ready State" + http.readyState);
+}
+};
+http.open(
+"PUT",
+`http://localhost:8080/FruitShop/item?itemCode=${code}`,
+true
+);
+http.setRequestHeader("Content-Type", "application/json");
+http.send(updateItemJSON);
+
+ 
+
+  }
+//   let qty1=$("#OrderManage .itemQty").val()
+//   let qty2=$("#OrderManage .orderQty").val()
+//   let des= $('#OrderManage .itemName').val()
+//   let price=$('#OrderManage .itemPrice').val()
+//   let code1=$('#OrderManage .itemCode').val()
+//   let finalqty=qty1-qty2;
+//  let item2 = {
+//     code : 'I00',
+//     description :des,
+//     quantity :finalqty,
+//     price:price 
+// };
+
+
+
+
+   
 }
 
 $(".mainTable .tableRows").on("click", "div", function () {

@@ -3,13 +3,15 @@ import { getAllItems } from '../model/ItemModel.js';
 import { deleteItem } from '../model/ItemModel.js';
 import { updateItem } from '../model/ItemModel.js';
 
-document.querySelector('#ItemManage #ItemForm').addEventListener('submit', function(event){
-    event.preventDefault();
-});
-let itemarray;
+
+export let itemarray;
 
 $(document).ready(function(){
     refresh();
+});
+
+document.querySelector('#ItemManage #ItemForm').addEventListener('submit', function(event){
+    event.preventDefault();
 });
 
 var code  ;
@@ -134,10 +136,13 @@ function extractNumber(id){
 
 function refresh(){
     $('#ItemManage .itemId').val(generateId());
-    $('#ItemManage .itemId').val('');
     $('#ItemManage .itemName').val('');
     $('#ItemManage .itemQty').val('');
     $('#ItemManage .itemPrice').val('');
+    $("#ItemManage .invalidCode").text("");
+    $("#ItemManage .invalidName").text("");
+    $("#ItemManage .invalidQty").text("");
+
     reloadTable();
 }
 
@@ -300,7 +305,7 @@ $('#ItemManage .updateBtn').click(function(){
     if(valid){
        // let items = getAllItems();
         let index = itemarray.findIndex((i) => i.code === item.code);
-       // updateItem(index, item);
+        updateItem( item);
         alert('Item Updated');
         refresh();
     }

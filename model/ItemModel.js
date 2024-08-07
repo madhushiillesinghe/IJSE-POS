@@ -13,6 +13,6 @@ export function deleteItem(index){
     Items.splice(index, 1);
 }
 
-export function updateItem(index, item){
-    Items[index] = item;
+export function updateItem( item){
+    //Items[index] = item;
 }

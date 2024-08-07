@@ -31,18 +31,7 @@ export let Customers = [
 
  
 export let Items = [
-  // {
-  //   itemId: "I01",
-  //   itemName: "Orange",
-  //   itemQty: 250,
-  //   itemPrice: 300,
-  // },
-  // {
-  //   itemId: "I02",
-  //   itemName: " PineApple",
-  //   itemQty: 25,
-  //   itemPrice: 850,
-  // },
+ 
 ];
 
 export let Orders = [];

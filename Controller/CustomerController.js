@@ -3,7 +3,7 @@ import { saveCustomer } from "../model/CustomerModel.js";
 import { getAllCustomers } from "../model/CustomerModel.js";
 import { updateCustomer } from "../model/CustomerModel.js";
 import { deleteCustomer } from "../model/CustomerModel.js";
-let customerarray;
+export let customerarray;
 $(document).ready(function () {
   refresh();
 });
